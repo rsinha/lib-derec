@@ -1,9 +1,9 @@
 pub mod verification;
-use prost::Message;
 pub use verification::generate_verification_request;
 pub use verification::generate_verification_response;
 pub use verification::verify_share_response;
 
+use prost::Message;
 use crate::protos::derec_proto::{VerifyShareRequestMessage, VerifyShareResponseMessage};
 
 use wasm_bindgen::prelude::*;

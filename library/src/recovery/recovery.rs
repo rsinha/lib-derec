@@ -1,6 +1,13 @@
 use prost::Message;
 use derec_cryptography::vss::*;
-use crate::{protos::derec_proto::{CommittedDeRecShare, DeRecShare, GetShareRequestMessage, GetShareResponseMessage, Result as DerecResult, StatusEnum}, types::ChannelId};
+use crate::{protos::derec_proto::{
+    CommittedDeRecShare,
+    DeRecShare,
+    GetShareRequestMessage,
+    GetShareResponseMessage,
+    Result as DerecResult,
+    StatusEnum
+}, types::ChannelId};
 
 /// Generates a `GetShareRequestMessage` for requesting a secret share.
 ///
@@ -39,6 +46,7 @@ pub fn generate_share_request(
 /// or an error string if the response could not be generated.
 pub fn generate_share_response(
     _channel_id: &ChannelId,
+    _secret_id: impl AsRef<[u8]>,
     _request: &GetShareRequestMessage,
     share_content: impl AsRef<[u8]>,
 ) -> GetShareResponseMessage {
@@ -73,12 +81,12 @@ pub fn generate_share_response(
 /// - Any share cannot be decoded or does not match the requested secret ID or version.
 /// - The secret cannot be reconstructed from the provided shares.
 pub fn recover_from_share_responses(
-    response: &[GetShareResponseMessage],
+    responses: &[GetShareResponseMessage],
     secret_id: impl AsRef<[u8]>,
     version: i32,
 ) -> Result<Vec<u8>, &'static str> {
     let mut shares = Vec::new();
-    for res in response {
+    for res in responses {
         match extract_share_from_response(res, &secret_id.as_ref().to_vec(), version) {
             Ok(share) => shares.push(share),
             Err(e) => return Err(e),
@@ -156,6 +164,7 @@ mod tests {
             // Generate a share response
             let response = super::generate_share_response(
             &share.0,
+            &secret_id,
             &super::generate_share_request(&channels[i], &secret_id.to_vec(), version),
             share.1.share.to_vec()
             );

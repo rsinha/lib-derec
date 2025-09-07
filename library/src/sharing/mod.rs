@@ -5,7 +5,7 @@ pub use sharing::protect_secret;
 use wasm_bindgen::prelude::*;
 use std::collections::HashMap;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 struct TsProtectSecretResult {
     value: HashMap<u64, Vec<u8>>,
 }
