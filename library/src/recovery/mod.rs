@@ -42,10 +42,18 @@ pub fn ts_recover_from_share_responses(
     let responses: TsRecoverShareResponses = serde_wasm_bindgen::from_value(responses).unwrap();
     let mut parsed_responses = Vec::new();
     for (_channel_id, bytes) in responses.value {
-        let response = GetShareResponseMessage::decode(&*bytes).unwrap();
-        parsed_responses.push(response);
+        let response = GetShareResponseMessage::decode(&*bytes);
+        if response.is_err() {
+            return vec![1u8];
+        } else {
+            parsed_responses.push(response.unwrap());
+        }
     }
-    recovery::recover_from_share_responses(&parsed_responses, secret_id, version).unwrap().encode_to_vec()
+    let secret = recovery::recover_from_share_responses(&parsed_responses, secret_id, version);
+    if secret.is_err() {
+        return vec![1u8];
+    }
+    return secret.unwrap();
 }
 
 #[cfg(test)]
