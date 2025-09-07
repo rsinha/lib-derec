@@ -29,7 +29,7 @@ use sha2::*;
 ///
 /// ```rust
 /// use crate::derec_library::verification::*;
-/// let requests = generate_verification_request("secret_id", 1).unwrap();
+/// let requests = generate_verification_request("secret_id", 1);
 /// ```
 pub fn generate_verification_request(
     _secret_id: impl AsRef<[u8]>,
@@ -65,9 +65,9 @@ pub fn generate_verification_request(
 /// ```rust
 /// use crate::derec_library::verification::*;
 /// let share_content = b"example_share";
-/// let requests = generate_verification_request("secret", &[1, 2, 3], 101).unwrap();
-/// let request = requests.get(&1).unwrap();
-/// let response = generate_verification_response("secret", &1, share_content, request).unwrap();
+/// let channel = 2;
+/// let request = generate_verification_request("secret", 101);
+/// let response = generate_verification_response("secret", &channel, share_content, &request);
 /// ```
 pub fn generate_verification_response(
     _secret_id: impl AsRef<[u8]>,
@@ -113,10 +113,10 @@ pub fn generate_verification_response(
 /// ```rust
 /// use crate::derec_library::verification::*;
 /// let share_content = b"example_share";
-/// let requests = generate_verification_request("secret", &[1, 2, 3], 100).unwrap();
-/// let request = requests.get(&2).unwrap();
-/// let response = generate_verification_response("secret", &2, share_content, request).unwrap();
-/// let verify = verify_share_response("secret", &2, share_content, &response).unwrap();
+/// let channel = 2;
+/// let request = generate_verification_request("secret", 100);
+/// let response = generate_verification_response("secret", &channel, share_content, &request);
+/// let verify = verify_share_response("secret", &channel, share_content, &response);
 /// assert!(verify);
 /// ```
 

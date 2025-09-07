@@ -16,15 +16,13 @@ use crate::{protos::derec_proto::{CommittedDeRecShare, DeRecShare, GetShareReque
 /// or an error string if the request could not be generated.
 pub fn generate_share_request(
     _channel_id: &ChannelId,
-    secret_id: &Vec<u8>,
+    secret_id: impl AsRef<[u8]>,
     version: i32,
-) -> Result<GetShareRequestMessage, &'static str> {
-    let request = GetShareRequestMessage {
-        secret_id: secret_id.clone(),
+) -> GetShareRequestMessage {
+    GetShareRequestMessage {
+        secret_id: secret_id.as_ref().to_vec(),
         share_version: version,
-    };
-
-    Ok(request)
+    }
 }
 
 /// Generates a `GetShareResponseMessage` containing a secret share in response to a share request.
@@ -43,14 +41,12 @@ pub fn generate_share_response(
     _channel_id: &ChannelId,
     _request: &GetShareRequestMessage,
     share_content: impl AsRef<[u8]>,
-) -> Result<GetShareResponseMessage, &'static str> {
-    let response = GetShareResponseMessage {
+) -> GetShareResponseMessage {
+    GetShareResponseMessage {
         share_algorithm: 0,
         committed_de_rec_share: share_content.as_ref().to_vec(),
         result: Some(DerecResult { status: StatusEnum::Ok as i32, memo: String::new() }),
-    };
-
-    Ok(response)
+    }
 }
 
 /// Attempts to reconstruct the original secret from a collection of `GetShareResponseMessage` responses.
@@ -78,12 +74,12 @@ pub fn generate_share_response(
 /// - The secret cannot be reconstructed from the provided shares.
 pub fn recover_from_share_responses(
     response: &[GetShareResponseMessage],
-    secret_id: &Vec<u8>,
+    secret_id: impl AsRef<[u8]>,
     version: i32,
 ) -> Result<Vec<u8>, &'static str> {
     let mut shares = Vec::new();
     for res in response {
-        match extract_share_from_response(res, secret_id, version) {
+        match extract_share_from_response(res, &secret_id.as_ref().to_vec(), version) {
             Ok(share) => shares.push(share),
             Err(e) => return Err(e),
         }
@@ -98,7 +94,7 @@ pub fn recover_from_share_responses(
 
 fn extract_share_from_response(
     response: &GetShareResponseMessage,
-    secret_id: &Vec<u8>,
+    secret_id: impl AsRef<[u8]>,
     version: i32
 ) -> Result<VSSShare, &'static str> {
     if response.result.is_none() {
@@ -116,7 +112,7 @@ fn extract_share_from_response(
     let derec_share = DeRecShare::decode(committed_derec_share.de_rec_share.as_slice())
         .map_err(|_| "Failed to decode DeRecShare")?;
 
-    if derec_share.secret_id != secret_id.as_slice() {
+    if derec_share.secret_id != secret_id.as_ref() {
         return Err("Secret ID in response does not match the requested secret ID");
     }
 
@@ -141,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_generate_share_request() {
-                // This test assumes that sharing::protect_secret exists and works as expected.
+        // This test assumes that sharing::protect_secret exists and works as expected.
         // It should generate shares for each channel, which can be verified using the verification API.
 
         let secret_id = b"real_secret_id";
@@ -160,9 +156,9 @@ mod tests {
             // Generate a share response
             let response = super::generate_share_response(
             &share.0,
-            &super::generate_share_request(&channels[i], &secret_id.to_vec(), version).unwrap(),
+            &super::generate_share_request(&channels[i], &secret_id.to_vec(), version),
             share.1.share.to_vec()
-            ).unwrap();
+            );
 
             responses.push(response);
         }
