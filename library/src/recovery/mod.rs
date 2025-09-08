@@ -4,7 +4,7 @@ pub use recovery::generate_share_response;
 pub use recovery::recover_from_share_responses;
 
 use prost::Message;
-use crate::protos::derec_proto::{GetShareRequestMessage, GetShareResponseMessage};
+use crate::protos::derec_proto::{GetShareRequestMessage, GetShareResponseMessage, StoreShareRequestMessage};
 
 use wasm_bindgen::prelude::*;
 
@@ -30,7 +30,8 @@ pub fn ts_generate_share_response(
     request: &[u8],
 ) -> Vec<u8> {
     let request = GetShareRequestMessage::decode(request).unwrap();
-    recovery::generate_share_response(&channel_id, secret_id, &request, share_content).encode_to_vec()
+    let share_content = StoreShareRequestMessage::decode(share_content).unwrap();
+    recovery::generate_share_response(&channel_id, secret_id, &request, &share_content).encode_to_vec()
 }
 
 #[wasm_bindgen]
@@ -38,22 +39,22 @@ pub fn ts_recover_from_share_responses(
     responses: JsValue,
     secret_id: &[u8],
     version: i32
-) -> Vec<u8> {
+) -> Result<Vec<u8>, String> {
     let responses: TsRecoverShareResponses = serde_wasm_bindgen::from_value(responses).unwrap();
     let mut parsed_responses = Vec::new();
     for (_channel_id, bytes) in responses.value {
         let response = GetShareResponseMessage::decode(&*bytes);
         if response.is_err() {
-            return vec![1u8];
+            return Err(response.unwrap_err().to_string());
         } else {
             parsed_responses.push(response.unwrap());
         }
     }
     let secret = recovery::recover_from_share_responses(&parsed_responses, secret_id, version);
     if secret.is_err() {
-        return vec![1u8];
+        return Err(secret.unwrap_err().to_string());
     }
-    return secret.unwrap();
+    return Ok(secret.unwrap());
 }
 
 #[cfg(test)]

@@ -40,5 +40,9 @@ const responses = new Map<number, number[]>();
 responses.set(1, Array.from(share_response_1));
 responses.set(2, Array.from(share_response_2));
 responses.set(3, Array.from(share_response_3));
-let recovered = ts_recover_from_share_responses({"value": responses}, secret_id, version);
-console.log("ts_recover_from_share_responses: ", recovered);
+try {
+    let recovered = ts_recover_from_share_responses({"value": responses}, secret_id, version);
+    console.log("ts_recover_from_share_responses: ", recovered);
+} catch (e) {
+    console.error("Error recovering from share responses: ", e);
+}

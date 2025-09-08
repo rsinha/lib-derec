@@ -3,6 +3,7 @@ use derec_cryptography::vss::*;
 use crate::{protos::derec_proto::{
     CommittedDeRecShare,
     DeRecShare,
+    StoreShareRequestMessage,
     GetShareRequestMessage,
     GetShareResponseMessage,
     Result as DerecResult,
@@ -48,11 +49,12 @@ pub fn generate_share_response(
     _channel_id: &ChannelId,
     _secret_id: impl AsRef<[u8]>,
     _request: &GetShareRequestMessage,
-    share_content: impl AsRef<[u8]>,
+    share_content: &StoreShareRequestMessage,
 ) -> GetShareResponseMessage {
+    // share_content is of type StoreShareRequestMessage
     GetShareResponseMessage {
         share_algorithm: 0,
-        committed_de_rec_share: share_content.as_ref().to_vec(),
+        committed_de_rec_share: share_content.share.to_vec(),
         result: Some(DerecResult { status: StatusEnum::Ok as i32, memo: String::new() }),
     }
 }
@@ -166,7 +168,7 @@ mod tests {
             &share.0,
             &secret_id,
             &super::generate_share_request(&channels[i], &secret_id.to_vec(), version),
-            share.1.share.to_vec()
+            share.1,
             );
 
             responses.push(response);
