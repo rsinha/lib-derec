@@ -57,6 +57,7 @@ pub fn ts_create_contact_message(
     serde_wasm_bindgen::to_value(&wrapper).unwrap()
 }
 
+#[wasm_bindgen]
 pub fn ts_produce_pairing_request_message(
     channel_id: u64,
     kind: u32,
@@ -86,6 +87,7 @@ pub fn ts_produce_pairing_request_message(
     serde_wasm_bindgen::to_value(&wrapper).unwrap()
 }
 
+#[wasm_bindgen]
 pub fn ts_produce_pairing_response_message(
     kind: u32,
     pair_request_message: &[u8],
@@ -115,6 +117,7 @@ pub fn ts_produce_pairing_response_message(
     serde_wasm_bindgen::to_value(&wrapper).unwrap()
 }
 
+#[wasm_bindgen]
 pub fn ts_process_pairing_response_message(
     contact_message: &[u8],
     pair_response_message: &[u8],
