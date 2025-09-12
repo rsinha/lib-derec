@@ -54,9 +54,9 @@ pub struct PairingContactMessageMaterial {
 
 #[derive(CanonicalSerialize, CanonicalDeserialize)]
 pub struct PairingSecretKeyMaterial {
-    mlkem_decapsulation_key: Option<Vec<u8>>,
-    mlkem_shared_secret: Option<[u8; 32]>,
-    ecies_secret_key: Vec<u8>,
+    pub mlkem_decapsulation_key: Option<Vec<u8>>,
+    pub mlkem_shared_secret: Option<[u8; 32]>,
+    pub ecies_secret_key: Vec<u8>,
 }
 
 #[derive(CanonicalSerialize, CanonicalDeserialize)]
